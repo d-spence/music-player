@@ -9,64 +9,56 @@ const progress = document.querySelector('.progress');
 const progressContainer = document.querySelector('.progress-container');
 const volume = document.querySelector('.volume');
 const volumeContainer = document.querySelector('.volume-container');
-const songList = document.querySelector('.song-list');
+const trackList = document.querySelector('.track-list');
 
-const songs = [
-  'SMB - Theme', 'SMB - Underground', 'SMB - Underwater',
-  'SMB 2 - Theme', 'SMB 3 - Fortress', 'SMB 3 - Grass Land',
-  'SMB 3 - King',
-];
-
-const covers = ['Mario', 'Coin', '1UP', 'Mushroom', 'Fireball', 'Feather', 'Flower'];
-
-let songIndex = 0;
+let trackIndex = 0;
 
 // On page load
-loadSong(songs[songIndex]);
-loadSongList();
+loadTrack(tracks[trackIndex]);
+loadTrackList();
 audio.volume = 0.5;
 
 // Script functions ============================================================
-function loadSong(song, index=songIndex) {
-  title.innerText = song;
-  cover.src = `images/${covers[index]}.png`;
-  audio.src = `music/${song}.mp3`;
+function loadTrack(track, index=trackIndex) {
+  title.innerText = `${track.artist} - ${track.title}`;
+  cover.src = track.image ?? 'images/default.jpg';
+  audio.src = track.url;
 }
 
-function loadSongList() {
+function loadTrackList() {
   let listItem, imgElem, titleElem;
 
-  songs.forEach((song, index) => {
+  tracks.forEach((track, index) => {
     listItem = document.createElement('div');
     imgElem = document.createElement('img');
     titleElem = document.createElement('span');
 
-    imgElem.src = `images/${covers[index]}.png`;
-    titleElem.innerText = song;
-    listItem.classList.add('song');
+    imgElem.src = track.image ?? 'images/default.jpg';
+    titleElem.innerText = `${track.artist} - ${track.title}`;
+    listItem.classList.add('track');
     
     listItem.addEventListener('click', () => {
-      songIndex = index;
-      loadSong(song);
-      playSong();
+      trackIndex = index;
+      loadTrack(track);
+      playTrack();
     });
 
     listItem.appendChild(imgElem);
     listItem.appendChild(titleElem);
-    songList.appendChild(listItem);
+    trackList.appendChild(listItem);
   });
 }
 
-function playSong() {
+function playTrack() {
   musicContainer.classList.add('play');
   playBtn.querySelector('i.fas').classList.remove('fa-play');
   playBtn.querySelector('i.fas').classList.add('fa-pause');
 
   audio.play();
-  document.title = songs[songIndex];
+  document.title = tracks[trackIndex].title;
 }
 
-function pauseSong() {
+function pauseTrack() {
   musicContainer.classList.remove('play');
   playBtn.querySelector('i.fas').classList.remove('fa-pause');
   playBtn.querySelector('i.fas').classList.add('fa-play');
@@ -75,26 +67,31 @@ function pauseSong() {
   document.title = 'Music Player';
 }
 
-function prevSong() {
-  songIndex--;
+function prevTrack() {
+  trackIndex--;
 
-  if (songIndex < 0) {
-    songIndex = songs.length - 1;
+  if (trackIndex < 0) {
+    trackIndex = tracks.length - 1;
   }
 
-  loadSong(songs[songIndex]);
-  playSong();
+  loadTrack(tracks[trackIndex]);
+  playTrack();
 }
 
-function nextSong() {
-  songIndex++;
+function nextTrack(noLoop=false) {
+  trackIndex++;
 
-  if (songIndex >= songs.length) {
-    songIndex = 0;
+  if (trackIndex >= tracks.length) {
+    trackIndex = 0;
+
+    if (noLoop) {
+      loadTrack(tracks[trackIndex]); // load first track
+      pauseTrack(); return;
+    };
   }
-
-  loadSong(songs[songIndex]);
-  playSong();
+  
+  loadTrack(tracks[trackIndex]);
+  playTrack();
 }
 
 function updateProgress(e) {
@@ -125,18 +122,18 @@ playBtn.addEventListener('click', () => {
   const isPlaying = musicContainer.classList.contains('play');
 
   if (isPlaying) {
-    pauseSong();
+    pauseTrack();
   } else {
-    playSong();
+    playTrack();
   }
 });
 
-prevBtn.addEventListener('click', prevSong);
-nextBtn.addEventListener('click', nextSong);
+prevBtn.addEventListener('click', prevTrack);
+nextBtn.addEventListener('click', nextTrack);
 
-volumeContainer.addEventListener('click', setVolume, true);
+volumeContainer.addEventListener('click', setVolume);
 
 audio.addEventListener('timeupdate', updateProgress);
-audio.addEventListener('ended', nextSong);
+audio.addEventListener('ended', () => nextTrack(true));
 
 progressContainer.addEventListener('click', setProgress);
